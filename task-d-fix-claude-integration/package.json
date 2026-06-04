@@ -1,0 +1,12 @@
+{
+  "name": "mabi-ai-mentor",
+  "version": "1.0.0",
+  "description": "MABI AI Mentor — fixed Claude API integration",
+  "main": "ai-mentor.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.100.1"
+  }
+}
