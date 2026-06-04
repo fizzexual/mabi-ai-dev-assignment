@@ -1,61 +1,61 @@
 # MABI Member API
 
-WordPress REST API plugin for the MABI platform. Exposes a `/wp-json/mabi/v1/member/{user_id}` endpoint that returns membership data for a given user.
+WordPress REST API плъгин за платформата МАБИ. Регистрира endpoint `/wp-json/mabi/v1/member/{user_id}`, който връща данни за членството на потребител.
 
-## Installation
+## Инсталация
 
-1. Copy the `mabi-task-a` folder into `wp-content/plugins/mabi-member-api/` (or place `mabi-member-api.php` directly into `wp-content/mu-plugins/` for auto-activation).
-2. In the WordPress admin dashboard go to **Plugins** and activate **MABI Member API**.
-3. The endpoint is now available at `https://your-site.com/wp-json/mabi/v1/member/{user_id}`.
+1. Копирайте папката `task-a-wordpress-plugin` в `wp-content/plugins/mabi-member-api/` (или поставете `mabi-member-api.php` директно в `wp-content/mu-plugins/` за автоматично активиране).
+2. В WordPress админ панела отидете на **Plugins** и активирайте **MABI Member API**.
+3. Endpoint-ът е достъпен на `https://your-site.com/wp-json/mabi/v1/member/{user_id}`.
 
-## Authentication
+## Автентикация
 
-The endpoint requires a logged-in user. Authentication can be provided via:
+Endpoint-ът изисква логнат потребител. Автентикация може да се осигури чрез:
 
-- **Cookie authentication** (default when using the browser while logged in).
+- **Cookie автентикация** (по подразбиране при логнат потребител в браузъра).
 - **Application Passwords** (WordPress 5.6+).
-- **Any authentication plugin** that sets the current user for REST requests (JWT, OAuth, etc.).
+- **Всеки автентикационен плъгин**, който задава текущия потребител за REST заявки (JWT, OAuth и т.н.).
 
-### Access rules
+### Правила за достъп
 
-| Caller            | Requested user | Result |
-|-------------------|---------------|--------|
-| Not logged in     | Any           | `401`  |
-| Subscriber (id 5) | id 5          | `200`  |
-| Subscriber (id 5) | id 10         | `403`  |
-| Administrator     | Any           | `200`  |
+| Извикващ          | Заявен потребител | Резултат |
+|-------------------|-------------------|----------|
+| Нелогнат          | Всеки             | `401`    |
+| Subscriber (id 5) | id 5              | `200`    |
+| Subscriber (id 5) | id 10             | `403`    |
+| Administrator     | Всеки             | `200`    |
 
-## Testing with curl
+## Тестване с curl
 
-### Using Application Passwords
+### С Application Passwords
 
-Generate an Application Password in **Users > Profile > Application Passwords**, then:
+Генерирайте Application Password от **Users > Profile > Application Passwords**, след което:
 
 ```bash
-# Fetch your own data (replace USER and APP_PASSWORD)
+# Собствени данни (заместете USER и APP_PASSWORD)
 curl -u USER:APP_PASSWORD https://your-site.com/wp-json/mabi/v1/member/1
 
-# As admin, fetch another user's data
+# Като админ — данни на друг потребител
 curl -u ADMIN:APP_PASSWORD https://your-site.com/wp-json/mabi/v1/member/42
 ```
 
-### Using cookie auth (nonce)
+### С cookie автентикация (nonce)
 
 ```bash
-# Obtain a nonce first (logged-in browser session), then:
+# Първо вземете nonce (от логната браузър сесия), след което:
 curl -H "X-WP-Nonce: <nonce_value>" \
      --cookie "wordpress_logged_in_xxx=..." \
      https://your-site.com/wp-json/mabi/v1/member/1
 ```
 
-### Testing with Postman
+### Тестване с Postman
 
-1. Set method to **GET**.
+1. Метод: **GET**.
 2. URL: `https://your-site.com/wp-json/mabi/v1/member/1`.
-3. Under **Authorization** choose **Basic Auth** and enter your username and Application Password.
-4. Send the request.
+3. В **Authorization** изберете **Basic Auth** и въведете потребителско име и Application Password.
+4. Изпратете заявката.
 
-### Expected response (200)
+### Очакван отговор (200)
 
 ```json
 {
@@ -71,7 +71,7 @@ curl -H "X-WP-Nonce: <nonce_value>" \
 }
 ```
 
-### Error responses
+### Отговори при грешка
 
 ```
 401 — {"code":"rest_not_logged_in","message":"Трябва да сте влезли в профила си..."}
@@ -79,47 +79,44 @@ curl -H "X-WP-Nonce: <nonce_value>" \
 404 — {"code":"rest_user_not_found","message":"Потребител с ID 99 не е намерен."}
 ```
 
-## Populating user meta
+## User meta полета
 
-The plugin reads the following `usermeta` keys (all optional — sensible defaults are used when absent):
+Плъгинът чете следните `usermeta` ключове (всички са опционални — при липса се ползват стойности по подразбиране):
 
-| Meta key                    | Type    | Default                        |
+| Meta ключ                  | Тип     | По подразбиране                |
 |----------------------------|---------|--------------------------------|
 | `mabi_membership_active`   | bool    | `true`                         |
 | `mabi_membership_level`    | string  | `level_1`                      |
-| `mabi_membership_expires`  | string  | One year from current date     |
+| `mabi_membership_expires`  | string  | Една година от текущата дата    |
 | `mabi_courses_completed`   | int     | `0`                            |
 | `mabi_courses_total`       | int     | `8`                            |
-| `mabi_last_login`          | string  | Current timestamp              |
-| `mabi_registration_date`   | string  | `user_registered` field        |
+| `mabi_last_login`          | string  | Текущ timestamp                |
+| `mabi_registration_date`   | string  | Полето `user_registered`       |
 
-You can set these via `update_user_meta()` or through the admin UI with a custom fields plugin.
+Могат да се задават чрез `update_user_meta()` или през админ панела с плъгин за custom полета.
 
-## Running unit tests
+## Unit тестове
 
-Requires the [WordPress test suite](https://make.wordpress.org/core/handbook/testing/automated-testing/phpunit/) to be set up.
+Изисква настроен [WordPress test suite](https://make.wordpress.org/core/handbook/testing/automated-testing/phpunit/).
 
 ```bash
-# From the WordPress root, with the test suite configured:
+# От корена на WordPress, с настроен test suite:
 phpunit --filter Test_MABI_Member_API
 ```
 
-## Caching
+## Кеширане
 
-Responses are cached using WordPress transients for **5 minutes** per user. The cache key format is `mabi_member_{user_id}`. To clear a user's cache programmatically:
+Отговорите се кешират чрез WordPress transients за **5 минути** на потребител. Формат на ключа: `mabi_member_{user_id}`. За програмно изчистване:
 
 ```php
 MABI_Member_API::clear_cache( $user_id );
 ```
 
-## What I would improve with more time
+## Какво бих подобрил с повече време
 
-- **Schema definition**: Add a full JSON Schema via `get_item_schema()` on the REST controller for auto-documentation and client code generation.
-- **Real LMS integration**: Replace mock meta keys with queries to an actual LMS plugin (LearnDash, LifterLMS, Tutor LMS) for `courses_completed` and `courses_total`.
-- **Cache invalidation hooks**: Automatically clear the transient when relevant usermeta is updated via `updated_user_meta` / `added_user_meta` hooks.
-- **Rate limiting**: Add per-IP or per-user rate limiting to protect against abuse.
-- **Pagination and filtering**: Support listing multiple members for admin dashboards (`/mabi/v1/members?level=level_2&page=1`).
-- **Internationalization**: Load a `.po`/`.mo` translation file so all translatable strings are properly localized.
-- **OpenAPI / Swagger spec**: Auto-generate API documentation from the registered schema.
-- **Object caching support**: Use `wp_cache_*` functions (backed by Redis/Memcached) instead of transients for better performance in scaled environments.
-- **Webhook notifications**: Fire a webhook or action when membership status changes so external systems can stay in sync.
+- **JSON Schema**: Добавяне на пълна схема чрез `get_item_schema()` за автоматична документация.
+- **Реална LMS интеграция**: Заместване на mock данните с реални заявки към LMS плъгин (LearnDash, LifterLMS, Tutor LMS).
+- **Cache invalidation hooks**: Автоматично изчистване на кеша при промяна на usermeta чрез `updated_user_meta` / `added_user_meta` хукове.
+- **Rate limiting**: Ограничаване на заявките по IP или потребител.
+- **Пагинация и филтриране**: Списък на множество членове за админ панели (`/mabi/v1/members?level=level_2&page=1`).
+- **Object caching**: Използване на `wp_cache_*` функции (Redis/Memcached) вместо transients за по-добра производителност.
